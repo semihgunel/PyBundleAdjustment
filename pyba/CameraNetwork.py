@@ -5,7 +5,7 @@ from typing import *
 import numpy as np
 
 from pyba.Camera import Camera
-from pyba.util import triangulate
+from pyba.util import nview_linear_triangulations
 
 
 class CameraNetwork:
@@ -60,17 +60,17 @@ class CameraNetwork:
         return self._points3d
 
     def set_points3d(self, img_id, jid, pts):
-        self._points3d[img_id, jid] = pts
+        self._points3d[img_id, jid] = np.squeeze(pts)
 
     def triangulate(self):
         n_joints = self[0].get_njoints()
         n_images = self.get_nimages()
         
         for img_id, j_id in product(range(n_images), range(n_joints)):
-            self.set_points3d(img_id, j_id, triangulate(
+            self.set_points3d(img_id, j_id, nview_linear_triangulations(
                 [c.P for c in self if c.can_see(img_id, j_id)], # set of projection matrices
-                [c[img_id][j_id] for c in self if c.can_see(img_id, j_id)]  # set of 2d points
-            )) 
+                [np.array([c[img_id][j_id] for c in self if c.can_see(img_id, j_id)]).swapaxes(0,1)]  # set of 2d points
+            ))
 
         return self.points3d
 

@@ -104,12 +104,13 @@ def triangulate(cam_list, point_list):
         correspondence = np.empty(shape=(2, num_cameras))
         for count_cameras in range(num_cameras):
             correspondence[:, count_cameras] = point_list[count_cameras][
-                count_points, :
+                count_points
             ]
         image_points.append(correspondence)
     points3d = nview_linear_triangulations(cam_list, image_points)
     if points3d.shape[0] == 3:
         points3d = points3d.transpose()
+    print(points3d.shape, num_cameras, correspondence.shape)
     return points3d
 
 

@@ -40,7 +40,7 @@ class Camera:
         self.intrinsic = intrinsic
         self.tvec = tvec
         self.R = R
-        self.distort = self.set_distort(np.zeros(5, dtype=np.float)) if distort is None else self.set_distort(distort)
+        self.distort = np.zeros(5, dtype=np.float) if distort is None else distort
 
     @property
     def P(self):
@@ -80,7 +80,8 @@ class Camera:
         img = self.get_image(img_id)
         points2d = self.points2d[img_id] if points2d is None else points2d
         for jid in range(self.get_njoints()):
-            img = cv2.circle(img, points2d[jid].astype(int), 5, [255, 0, 0], 5)
+            if self.can_see(img_id, jid):
+                img = cv2.circle(img, points2d[jid].astype(int), 5, [255, 0, 0], 5)
         return img
 
 
@@ -92,18 +93,18 @@ class Camera:
 
         assert points3d.ndim == 3 and points3d.shape[2] == 3
 
-        os = list(points3d.shape)
+        # original shape
+        t, j = points3d.shape[0], points3d.shape[1]
 
-        # opencv wants 3xn matrix
-        points3d = np.swapaxes(points3d, 0, 2) # txjx3 -> 3xtxj
-        points3d = points3d.reshape(os[0]*os[1], os[2])
+        # opencv wants nx3 matrix
+        # https://docs.opencv.org/3.4/d9/d0c/group__calib3d.html#ga1019495a2c8d1743ed5cc23fa0daff8c
+        points3d = points3d.reshape(t*j, 3) # (txj)x3
         points2d, _ = cv2.projectPoints(
             points3d, self.rvec , self.tvec, self.intrinsic, self.distort
         )
 
-        # reshape back to TxJx2
-        os[2] = 2
-        points2d = points2d.reshape(os)
+        # reshape back to txjx2
+        points2d = points2d.reshape(t, j, 2) # txjx2 
         return np.squeeze(points2d)
 
     def reprojection_error(self, points3d:np.ndarray):
