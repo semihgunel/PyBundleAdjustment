@@ -32,12 +32,13 @@ class CameraNetwork:
 
         self.cam_list = list()
         for cam_id in range(points2d.shape[0]):
+            image_path = image_path.format(cam_id=cam_id, img_id='{img_id}') if image_path is not None else None
             cam = Camera(intrinsic=calib[cam_id]['intr'],
                          R=calib[cam_id]['R'],
                          tvec=calib[cam_id]['tvec'],
                          distort=calib[cam_id]['distort'],
                          points2d=points2d[cam_id],
-                         image_path=image_path.format(cam_id=cam_id, img_id='{img_id}'))
+                         image_path=image_path)
             self.cam_list.append(cam)
 
         self._points3d = np.zeros((self.get_nimages(), self.get_njoints(), 3))
@@ -94,6 +95,17 @@ class CameraNetwork:
                 raise NotImplementedError
 
         return np.concatenate([c.plot_2d(img_id, points2d=get_plot_points2d(cid, img_id, points), bones=self.bones) for (cid, c) in enumerate(self)], axis=1)
+
+
+    def plot_3d(self, ax_3d, img_id:int, size:float=1):
+        for bone in self.bones:
+                ax_3d.plot(
+                self.points3d[img_id, bone, 0]*size,
+                self.points3d[img_id, bone, 1]*size,
+                self.points3d[img_id, bone, 2]*size,
+                c='blue',
+                linewidth=2
+            )
 
 
     def summarize(self):

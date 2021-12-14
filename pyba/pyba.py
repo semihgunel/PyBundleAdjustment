@@ -9,7 +9,10 @@ from pyba.Camera import Camera
 from pyba.CameraNetwork import CameraNetwork
 
 
-def bundle_adjust(camNet:CameraNetwork,  max_num_images:int=1000):
+def bundle_adjust(camNet:CameraNetwork,  max_num_images:int=1e3, update_intrinsic:bool=True, update_distort:bool=True):
+    """ 
+    max_num_images: large number of points take too long to optimize. will select random points instead.
+    """
     (
         x0,
         points_2d,
@@ -37,6 +40,8 @@ def bundle_adjust(camNet:CameraNetwork,  max_num_images:int=1000):
             camera_indices,
             point_indices,
             points_2d,
+            update_intrinsic,
+            update_distort
         ),
         max_nfev=1000,
     )
@@ -78,7 +83,8 @@ def prepare_bundle_adjust_param(camNet:CameraNetwork, max_num_images:int=1000):
     # select which images to calculate residuals on
     img_id_list = np.arange(camNet.get_nimages())
     if camNet.get_nimages() > max_num_images:
-        img_id_list = np.random.randint(0, high=camNet.get_nimages() - 1, size=(max_num_images))
+        print(camNet.get_nimages(), max_num_images)
+        img_id_list = np.random.randint(0, high=camNet.get_nimages() - 1, size=(int(max_num_images)))
 
     point_indices, camera_indices, pts2d, pts3d = list(), list(), list(), list()
     # for all image and joint
@@ -103,8 +109,6 @@ def prepare_bundle_adjust_param(camNet:CameraNetwork, max_num_images:int=1000):
 
     x0 = np.hstack((camera_params.ravel(), pts3d.ravel()))
 
-    print(pts2d.shape, point_indices.shape)
-
     return (
         x0.copy(),
         pts2d.copy(),
@@ -113,6 +117,16 @@ def prepare_bundle_adjust_param(camNet:CameraNetwork, max_num_images:int=1000):
         camera_indices,
         point_indices,
     )
+
+
+def update_parameters(camera_params:np.ndarray, cam:Camera, update_intrinsic:bool=True, update_distort:bool=True):
+    cam.rvec = camera_params[0:3]
+    cam.tvec = camera_params[3:6]
+    if update_intrinsic:
+        cam.fx = camera_params[6]
+        cam.fy = camera_params[7]
+    if update_distort:
+        cam.distort  = camera_params[8:13]
 
 
 
@@ -124,6 +138,8 @@ def residuals(
     camera_indices:List[int],
     point_indices:List[int],
     points_2d:np.ndarray,
+    update_intrinsic:bool=True,
+    update_distort:bool=True
 ):
     """Compute residuals.
     `params` contains camera parameters and 3-D coordinates.
@@ -137,9 +153,7 @@ def residuals(
 
     points_proj = np.zeros(shape=(point_indices.shape[0], 2), dtype=np.float)
     for cam_id in cam_indices_list:
-        # update the parameters
-        cam_list[cam_id].rvec = camera_params[cam_id][0:3]
-        cam_list[cam_id].tvec = camera_params[cam_id][3:6]
+        update_parameters(camera_params[cam_id], cam_list[cam_id], update_intrinsic, update_distort)
 
         points2d_mask = camera_indices == cam_id
         points3d_where = point_indices[points2d_mask]

@@ -62,7 +62,6 @@ class Camera:
     def rvec(self, rvec):
         self.R = cv2.Rodrigues(rvec)[0] 
 
-
     @property
     def fx(self):
         return self.intrinsic[0, 0]
@@ -71,13 +70,30 @@ class Camera:
     def fy(self):
         return self.intrinsic[1, 1]
 
+
     @property
     def cx(self):
         return self.intrinsic[0, 2]
 
     @property
-    def cx(self):
+    def cy(self):
         return self.intrinsic[1, 2]
+
+    @fx.setter
+    def fx(self, fx):
+        self.intrinsic[0,0] = fx
+
+    @fy.setter
+    def fy(self, fy):
+        self.intrinsic[1,1] = fy
+
+    @cx.setter
+    def cx(self, cx):
+        self.intrinsic[0,2] = cx
+
+    @cy.setter
+    def cy(self, cy):
+        self.intrinsic[1,2] = cy
 
     @property
     def points2d(self):
@@ -142,7 +158,7 @@ class Camera:
 
         # reshape back to txjx2
         points2d = points2d.reshape(t, j, 2) # txjx2 
-        return np.squeeze(points2d)
+        return points2d
 
     def reprojection_error(self, points3d:np.ndarray):
         err = self.points2d - self.project(points3d)
