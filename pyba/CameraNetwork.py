@@ -98,3 +98,8 @@ class CameraNetwork:
 
     def summarize(self):
         return {cid:c.summarize() for (cid, c) in enumerate(self)}
+
+
+    def draw(self, ax3d, size:float=1):
+        for cid, c in enumerate(self):
+            c.draw(ax3d, size=size, text=f'{cid}')

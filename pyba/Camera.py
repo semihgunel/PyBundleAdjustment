@@ -1,3 +1,4 @@
+from pyba.plot import draw_reference_frame
 from typing import *
 from typing import Optional
 
@@ -50,9 +51,17 @@ class Camera:
     def rvec(self):
         return cv2.Rodrigues(self.R)[0]
 
+    def camera2world(self, pts:np.ndarray):
+        return self.R.T @ (pts - self.tvec)
+
+    @property
+    def C(self):
+        return -1 * self.R.T @ self.tvec
+
     @rvec.setter
     def rvec(self, rvec):
         self.R = cv2.Rodrigues(rvec)[0] 
+
 
     @property
     def fx(self):
@@ -139,5 +148,13 @@ class Camera:
         err = self.points2d - self.project(points3d)
         err[self.can_see_mask(), :] = 0
         return err
+
+    def draw(self, ax3d, size:float=1, text:Optional[str]=None):
+        x = self.camera2world(np.array([size, 0, 0]))
+        y = self.camera2world(np.array([0, size, 0]))
+        z = self.camera2world(np.array([0, 0, size]))
+
+        draw_reference_frame(ax3d, center=self.C, x=x, y=y, z=z, text=text)
+
 
        
