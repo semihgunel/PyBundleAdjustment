@@ -11,7 +11,7 @@ from pyba.util import nview_linear_triangulations
 class CameraNetwork:
     """ 
     camera rig. can be used for multi-view triangulation and calibration.
-    """
+    """ 
     def __init__(
         self,
         points2d:Union[str, np.ndarray],
@@ -43,6 +43,13 @@ class CameraNetwork:
         self._points3d = np.zeros((self.get_nimages(), self.get_njoints(), 3))
         self.triangulate()
 
+    @property
+    def points3d(self):
+        return self._points3d
+
+    def set_points3d(self, img_id, jid, pts):
+        self._points3d[img_id, jid] = np.squeeze(pts)
+
     def __getitem__(self, item):
         return self.cam_list[item]
 
@@ -55,12 +62,6 @@ class CameraNetwork:
     def get_njoints(self):
         return self[0].points2d.shape[1]
 
-    @property
-    def points3d(self):
-        return self._points3d
-
-    def set_points3d(self, img_id, jid, pts):
-        self._points3d[img_id, jid] = np.squeeze(pts)
 
     def triangulate(self):
         n_joints = self[0].get_njoints()
@@ -92,7 +93,7 @@ class CameraNetwork:
             else:
                 raise NotImplementedError
 
-        return np.concatenate([c.plot_2d(img_id, points2d=get_plot_points2d(cid, img_id, points)) for (cid, c) in enumerate(self)], axis=1)
+        return np.concatenate([c.plot_2d(img_id, points2d=get_plot_points2d(cid, img_id, points), bones=self.bones) for (cid, c) in enumerate(self)], axis=1)
 
 
     def summarize(self):

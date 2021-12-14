@@ -50,6 +50,26 @@ class Camera:
     def rvec(self):
         return cv2.Rodrigues(self.R)[0]
 
+    @rvec.setter
+    def rvec(self, rvec):
+        self.R = cv2.Rodrigues(rvec)[0] 
+
+    @property
+    def fx(self):
+        return self.intrinsic[0, 0]
+
+    @property
+    def fy(self):
+        return self.intrinsic[1, 1]
+
+    @property
+    def cx(self):
+        return self.intrinsic[0, 2]
+
+    @property
+    def cx(self):
+        return self.intrinsic[1, 2]
+
     @property
     def points2d(self):
         return self._points2d
@@ -70,18 +90,26 @@ class Camera:
         return self.points2d.shape[1]
 
     def get_image(self, img_id:int):
-        img = plt.imread(self.image_path.format(img_id=img_id))
+        img = cv2.cvtColor(plt.imread(self.image_path.format(img_id=img_id)),cv2.COLOR_GRAY2RGB)
         return img
 
     def summarize(self):
         raise NotImplementedError
 
-    def plot_2d(self, img_id:int, points2d:Optional[np.ndarray]=None):
+    def plot_2d(self, img_id:int, points2d:Optional[np.ndarray]=None, bones:Optional[np.ndarray]=None):
         img = self.get_image(img_id)
         points2d = self.points2d[img_id] if points2d is None else points2d
+
+        # scatter
         for jid in range(self.get_njoints()):
             if self.can_see(img_id, jid):
-                img = cv2.circle(img, points2d[jid].astype(int), 5, [255, 0, 0], 5)
+                img = cv2.circle(img, tuple(points2d[jid].astype(int)), 5, [0, 0, 128], 5)
+
+        # bones
+        for b in bones:
+            if self.can_see(img_id, b[0]):
+                img = cv2.line(img, tuple(points2d[b[0]].astype(int)), tuple(points2d[b[1]].astype(int)), [0, 0, 128], 5)
+        
         return img
 
 
