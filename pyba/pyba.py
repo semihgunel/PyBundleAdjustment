@@ -43,7 +43,7 @@ def bundle_adjust(camNet:CameraNetwork,  max_num_images:int=1e3, update_intrinsi
             update_intrinsic,
             update_distort
         ),
-        max_nfev=1000,
+        max_nfev=100,
     )
     camNet.triangulate()
     return res
@@ -83,7 +83,6 @@ def prepare_bundle_adjust_param(camNet:CameraNetwork, max_num_images:int=1000):
     # select which images to calculate residuals on
     img_id_list = np.arange(camNet.get_nimages())
     if camNet.get_nimages() > max_num_images:
-        print(camNet.get_nimages(), max_num_images)
         img_id_list = np.random.randint(0, high=camNet.get_nimages() - 1, size=(int(max_num_images)))
 
     point_indices, camera_indices, pts2d, pts3d = list(), list(), list(), list()

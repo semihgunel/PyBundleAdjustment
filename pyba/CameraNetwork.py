@@ -5,7 +5,7 @@ from typing import *
 import numpy as np
 
 from pyba.Camera import Camera
-from pyba.util import nview_linear_triangulations
+from pyba.util import  triangulate
 
 
 class CameraNetwork:
@@ -21,10 +21,11 @@ class CameraNetwork:
         bones:Optional[List[List[int]]]=None
     ):
         ''' 
-        pts2d: if string, assumed to be the path 
+        points2d: CxTxJx2, where C is the number of cameras, J is the number of joints 
         '''
         # T x J x 3
         self.bones = bones
+        self.image_path = image_path
 
         points2d = pickle.load(points2d) if isinstance(points2d, str) else points2d
         points2d = points2d[:, :num_images] if num_images is not None else points2d
@@ -32,7 +33,7 @@ class CameraNetwork:
 
         self.cam_list = list()
         for cam_id in range(points2d.shape[0]):
-            image_path = image_path.format(cam_id=cam_id, img_id='{img_id}') if image_path is not None else None
+            image_path = self.image_path.format(cam_id=cam_id, img_id='{img_id}') if image_path is not None else None
             cam = Camera(intrinsic=calib[cam_id]['intr'],
                          R=calib[cam_id]['R'],
                          tvec=calib[cam_id]['tvec'],
@@ -69,9 +70,9 @@ class CameraNetwork:
         n_images = self.get_nimages()
         
         for img_id, j_id in product(range(n_images), range(n_joints)):
-            self.set_points3d(img_id, j_id, nview_linear_triangulations(
+            self.set_points3d(img_id, j_id, triangulate(
                 [c.P for c in self if c.can_see(img_id, j_id)], # set of projection matrices
-                [np.array([c[img_id][j_id] for c in self if c.can_see(img_id, j_id)]).swapaxes(0,1)]  # set of 2d points
+                np.array([c[img_id][j_id] for c in self if c.can_see(img_id, j_id)])  # set of 2d points
             ))
 
         return self.points3d
