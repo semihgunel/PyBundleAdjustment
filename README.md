@@ -14,8 +14,8 @@ d = pickle.load(open(glob.glob(pr_path)[0], 'rb'))
 camNet = CameraNetwork(points2d=d['points2d'], calib=d, image_path=image_path)
 ```
 
-points2d has the format B x T x J x 2. Units are in pixels. 
-calib is a nested dictionary. 
+points2d is a numpy array with shape T x J x 2. 
+All units are in pixels. calib is a nested dictionary. 
 
 ```python
 calib = {0: {'R': array([[ 0.90885957,  0.006461  , -0.41705219],
