@@ -30,11 +30,6 @@ class Camera:
         assert distort is None or (distort.ndim == 1 and distort.shape[0] == 5)
         assert intrinsic.ndim == 2 and intrinsic.shape[0] == 3 and intrinsic.shape[1] == 3
 
-        self.R = None
-        self.tvec = None
-        self.intrinsic = None
-        self.distort = None
-        
         self.image_path = image_path
         self._points2d = points2d
 

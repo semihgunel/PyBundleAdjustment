@@ -15,7 +15,7 @@ class CameraNetwork:
     def __init__(
         self,
         points2d:Union[str, np.ndarray],
-        calib:Union[str, dict],
+        calib:Optional[Union[str, dict]]=None,
         num_images:Optional[int]=None,
         image_path:Optional[str]=None,
         bones:Optional[List[List[int]]]=None
@@ -29,17 +29,17 @@ class CameraNetwork:
 
         points2d = pickle.load(points2d) if isinstance(points2d, str) else points2d
         points2d = points2d[:, :num_images] if num_images is not None else points2d
-        calib = pickle.load(calib) if isinstance(calib, str) else calib
+        if calib is not None:
+            calib = pickle.load(calib) if isinstance(calib, str) else calib
 
         self.cam_list = list()
         for cam_id in range(points2d.shape[0]):
             image_path = self.image_path.format(cam_id=cam_id, img_id='{img_id}') if image_path is not None else None
-            cam = Camera(intrinsic=calib[cam_id]['intr'],
-                         R=calib[cam_id]['R'],
-                         tvec=calib[cam_id]['tvec'],
-                         distort=calib[cam_id]['distort'],
+            cal = {k:calib[cam_id][k] for k in calib[cam_id].keys()} if calib is not None else {}
+            cam = Camera(
                          points2d=points2d[cam_id],
-                         image_path=image_path)
+                         image_path=image_path
+                         **cal)
             self.cam_list.append(cam)
 
         self._points3d = np.zeros((self.get_nimages(), self.get_njoints(), 3))
