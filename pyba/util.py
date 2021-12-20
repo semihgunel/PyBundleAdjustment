@@ -1,6 +1,4 @@
 import numpy as np
-import cv2
-from numba import jit
 
 
 def extrinsic_from_Rt(R: np.ndarray, tvec: np.ndarray):

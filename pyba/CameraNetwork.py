@@ -30,15 +30,15 @@ class CameraNetwork:
         self.bones = bones
         self.colors = colors
 
-        points2d = pickle.load(points2d) if isinstance(points2d, str) else points2d
-        points2d = points2d[:, :num_images] if num_images is not None else points2d
+        self.points2d = pickle.load(points2d) if isinstance(points2d, str) else points2d
+        self.points2d = points2d[:, :num_images] if num_images is not None else points2d
         if calib is not None:
             calib = pickle.load(calib) if isinstance(calib, str) else calib
 
         self.cam_list = list()
         for cam_id in range(points2d.shape[0]):
             image_path = (
-                self.image_path.replace('{cam_id}', str(cam_id))
+                self.image_path.replace("{cam_id}", str(cam_id))
                 if image_path is not None
                 else None
             )

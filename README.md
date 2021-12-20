@@ -83,9 +83,3 @@ camNet.plot_3d(ax3d, img_id=0, size=10)
 ```
 
 <img src="https://user-images.githubusercontent.com/20509861/146374042-1a3a65d2-310d-4783-b6d0-6864c582959f.png" width="500">
-
-
-## TODO 
-- [ ] Implement distortion, limit to two parameters
-- [ ] Implement intrinsic optimization
-- [ ] make losses the same with the scipy tutorial

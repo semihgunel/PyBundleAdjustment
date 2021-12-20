@@ -114,9 +114,9 @@ class Camera:
         return self.points2d.shape[1]
 
     def get_image(self, img_id: int):
-        img = cv2.cvtColor(
-            plt.imread(self.image_path.format(img_id=img_id)), cv2.COLOR_GRAY2RGB
-        )
+        img = plt.imread(self.image_path.format(img_id=img_id))
+        if img.ndim == 2 or (img.ndim == 3 and img.shape[-1] == 1):
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         return img
 
     def has_calibration(self):
@@ -125,7 +125,12 @@ class Camera:
         )
 
     def summarize(self):
-        raise NotImplementedError
+        return {
+            "R": self.R,
+            "tvec": self.tvec,
+            "distort": self.distort,
+            "intr": self.intrinsic,
+        }
 
     def plot_2d(
         self,
