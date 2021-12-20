@@ -9,7 +9,12 @@ from pyba.Camera import Camera
 from pyba.CameraNetwork import CameraNetwork
 
 
-def bundle_adjust(camNet:CameraNetwork,  max_num_images:int=1e3, update_intrinsic:bool=True, update_distort:bool=True):
+def bundle_adjust(
+    camNet: CameraNetwork,
+    max_num_images: int = 1e3,
+    update_intrinsic: bool = True,
+    update_distort: bool = True,
+):
     """ 
     max_num_images: large number of points take too long to optimize. will select random points instead.
     """
@@ -22,9 +27,7 @@ def bundle_adjust(camNet:CameraNetwork,  max_num_images:int=1e3, update_intrinsi
         point_indices,
     ) = prepare_bundle_adjust_param(camNet=camNet, max_num_images=max_num_images)
 
-    A = bundle_adjustment_sparsity(
-        n_cameras, n_points, camera_indices, point_indices
-    )
+    A = bundle_adjustment_sparsity(n_cameras, n_points, camera_indices, point_indices)
     res = least_squares(
         residuals,
         x0,
@@ -41,7 +44,7 @@ def bundle_adjust(camNet:CameraNetwork,  max_num_images:int=1e3, update_intrinsi
             point_indices,
             points_2d,
             update_intrinsic,
-            update_distort
+            update_distort,
         ),
         max_nfev=100,
     )
@@ -49,7 +52,9 @@ def bundle_adjust(camNet:CameraNetwork,  max_num_images:int=1e3, update_intrinsi
     return res
 
 
-def bundle_adjustment_sparsity(n_cameras:int, n_points:int, camera_indices:np.ndarray, point_indices:np.ndarray):
+def bundle_adjustment_sparsity(
+    n_cameras: int, n_points: int, camera_indices: np.ndarray, point_indices: np.ndarray
+):
     assert camera_indices.shape[0] == point_indices.shape[0]
     n_camera_params = 13
     m = camera_indices.size * 2
@@ -70,7 +75,8 @@ def bundle_adjustment_sparsity(n_cameras:int, n_points:int, camera_indices:np.nd
 
     return A
 
-def prepare_bundle_adjust_param(camNet:CameraNetwork, max_num_images:int=1000):
+
+def prepare_bundle_adjust_param(camNet: CameraNetwork, max_num_images: int = 500):
     # prepare intrinsic
     camera_params = np.zeros(shape=(len(camNet.cam_list), 13), dtype=float)
     for cid in range(len(camNet.cam_list)):
@@ -83,7 +89,9 @@ def prepare_bundle_adjust_param(camNet:CameraNetwork, max_num_images:int=1000):
     # select which images to calculate residuals on
     img_id_list = np.arange(camNet.get_nimages())
     if camNet.get_nimages() > max_num_images:
-        img_id_list = np.random.randint(0, high=camNet.get_nimages() - 1, size=(int(max_num_images)))
+        img_id_list = np.random.randint(
+            0, high=camNet.get_nimages() - 1, size=(int(max_num_images))
+        )
 
     point_indices, camera_indices, pts2d, pts3d = list(), list(), list(), list()
     # for all image and joint
@@ -91,11 +99,11 @@ def prepare_bundle_adjust_param(camNet:CameraNetwork, max_num_images:int=1000):
         pts3d.append(camNet.points3d[img_id, jid])
 
         for cid, cam in enumerate(camNet):
-            if not cam.can_see(img_id, jid): 
+            if not cam.can_see(img_id, jid):
                 continue
-            
+
             pts2d.append(cam[img_id, jid])
-            point_indices.append(len(pts3d)-1)
+            point_indices.append(len(pts3d) - 1)
             camera_indices.append(cid)
 
     pts3d = np.stack(pts3d)
@@ -118,27 +126,31 @@ def prepare_bundle_adjust_param(camNet:CameraNetwork, max_num_images:int=1000):
     )
 
 
-def update_parameters(camera_params:np.ndarray, cam:Camera, update_intrinsic:bool=True, update_distort:bool=True):
+def update_parameters(
+    camera_params: np.ndarray,
+    cam: Camera,
+    update_intrinsic: bool = True,
+    update_distort: bool = True,
+):
     cam.rvec = camera_params[0:3]
     cam.tvec = camera_params[3:6]
     if update_intrinsic:
         cam.fx = camera_params[6]
         cam.fy = camera_params[7]
     if update_distort:
-        cam.distort  = camera_params[8:13]
-
+        cam.distort = camera_params[8:13]
 
 
 def residuals(
     params,
-    cam_list:List[Camera],
-    n_cameras:int,
-    n_points:int,
-    camera_indices:List[int],
-    point_indices:List[int],
-    points_2d:np.ndarray,
-    update_intrinsic:bool=True,
-    update_distort:bool=True
+    cam_list: List[Camera],
+    n_cameras: int,
+    n_points: int,
+    camera_indices: List[int],
+    point_indices: List[int],
+    points_2d: np.ndarray,
+    update_intrinsic: bool = True,
+    update_distort: bool = True,
 ):
     """Compute residuals.
     `params` contains camera parameters and 3-D coordinates.
@@ -152,7 +164,9 @@ def residuals(
 
     points_proj = np.zeros(shape=(point_indices.shape[0], 2), dtype=np.float)
     for cam_id in cam_indices_list:
-        update_parameters(camera_params[cam_id], cam_list[cam_id], update_intrinsic, update_distort)
+        update_parameters(
+            camera_params[cam_id], cam_list[cam_id], update_intrinsic, update_distort
+        )
 
         points2d_mask = camera_indices == cam_id
         points3d_where = point_indices[points2d_mask]
