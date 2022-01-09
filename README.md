@@ -15,7 +15,8 @@ camNet = CameraNetwork(points2d=d['points2d'], calib=d, image_path=image_path)
 ```
 
 points2d is a numpy array with shape T x J x 2. 
-All units are in pixels. calib is a nested dictionary. 
+All units are in pixels. calib is a nested dictionary where keys are camera id's, indexed starting from 0 up to n_cameras-1. 
+values are another sets of dictionaries with keys  "R", "tvec", "intr", "distort" 
 
 ```python
 calib = {0: {'R': array([[ 0.90885957,  0.006461  , -0.41705219],

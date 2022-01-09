@@ -1,14 +1,16 @@
 import numpy as np
 
 
-def extrinsic_from_Rt(R: np.ndarray, tvec: np.ndarray):
+def extrinsic_from_Rt(R: np.ndarray, tvec: np.ndarray) -> np.ndarray:
+    """returns 4x3 extrinsic matrix from 3x3 rotation matrix R and 1x3 translation vector tvec"""
     extrinsic = np.zeros(shape=(3, 4))
     extrinsic[:3, :3] = R
     extrinsic[:, 3] = np.squeeze(tvec)
     return extrinsic
 
 
-def P_from_RtvecK(R: np.ndarray, tvec: np.ndarray, intrinsic: np.ndarray):
+def P_from_RtvecK(R: np.ndarray, tvec: np.ndarray, intrinsic: np.ndarray) -> np.ndarray:
+    """returns projection matrix P from 3x3 rotation matrix R, 1x3 translation vector tvec and 3x3 intrinsic matrix K"""
     if R is None or tvec is None or intrinsic is None:
         return None
     extrinsic = extrinsic_from_Rt(R, tvec)

@@ -18,7 +18,7 @@ class Camera:
         distort: Optional[np.ndarray] = None,
         image_path: Optional[dict] = None,
     ):
-        """ 
+        """
         fx, fy: focal length in pixels
         tvec: translation vector
         cx, cy: optical axis in pixels
@@ -98,6 +98,10 @@ class Camera:
     def points2d(self):
         return self._points2d
 
+    @points2d.setter
+    def points2d(self, pts2d):
+        self._points2d = pts2d
+
     def __getitem__(self, idx: int):
         return self.points2d[idx]
 
@@ -138,7 +142,7 @@ class Camera:
         points2d: Optional[np.ndarray] = None,
         bones: Optional[np.ndarray] = None,
         colors: Optional[List[Tuple]] = None,
-    ):
+    ) -> np.ndarray:
         img = self.get_image(img_id)
         points2d = self.points2d[img_id] if points2d is None else points2d
 
@@ -162,7 +166,7 @@ class Camera:
 
         return img
 
-    def project(self, points3d: np.ndarray):
+    def project(self, points3d: np.ndarray) -> np.ndarray:
         """
         points3d: TxJx3
         returns: points2d: TxJx2
@@ -195,4 +199,3 @@ class Camera:
         z = self.camera2world(np.array([0, 0, size]))
 
         draw_reference_frame(ax3d, center=self.C, x=x, y=y, z=z, text=text)
-

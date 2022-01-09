@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pyba",
-    version="0.1",
+    version="0.11",
     author="Semih Günel",
     packages=["pyba"],
     description="Python Bundle Adjustment Routines",
