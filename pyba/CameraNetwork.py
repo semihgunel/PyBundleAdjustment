@@ -107,11 +107,13 @@ class CameraNetwork:
 
         return self.points3d
 
-    def reprojection_error(self) -> float:
-        return [
-            np.mean(np.sum(np.abs(c.reprojection_error(self.points3d)), axis=2))
-            for c in self
-        ]
+    def reprojection_error(self, reduce=True) -> float:
+        repro = [c.reprojection_error(self.points3d) for c in self]
+
+        if reduce:
+            return np.mean(np.sum(np.abs(repro), axis=2))
+        else:
+            return np.stack(repro, axis=0)
 
     def plot_2d(
         self,
@@ -162,7 +164,13 @@ class CameraNetwork:
 
     def summarize(self):
         calib = {cid: c.summarize() for (cid, c) in enumerate(self)}
-        return {**calib, **{"points3d": self.points3d, "points2d": self.points2d}}
+        return {
+            **calib,
+            **{
+                "points3d": self.points3d,
+                "points2d": np.stack([c.points2d for c in self]),
+            },
+        }
 
     def draw(self, ax3d, size: float = 1):
         for cid, c in enumerate(self):
