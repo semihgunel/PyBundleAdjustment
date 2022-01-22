@@ -13,8 +13,8 @@ df3d_colors = [
     (0, 255, 0),
     (0, 255, 0),
     (0, 255, 0),
-    (0, 255, 0),
-    (0, 255, 0),
+    (255, 131, 0),
+    (255, 131, 0),
     (255, 255, 0),
     (255, 255, 0),
     (255, 255, 0),
@@ -27,11 +27,10 @@ df3d_colors = [
     (0, 255, 0),
     (0, 255, 0),
     (0, 255, 0),
-    (0, 255, 0),
-    (0, 255, 0),
+    (255, 131, 0),
+    (255, 131, 0),
 ]
 
 df3d_bones = np.array([[i, i + 1] for i in range(15) if (i + 1) % 5 != 0])
-df3d_bones = np.concatenate([df3d_bones, np.array([[16,17], [17,18]])])
+df3d_bones = np.concatenate([df3d_bones, np.array([[16, 17], [17, 18]])])
 df3d_bones = np.concatenate([df3d_bones, df3d_bones + 19])
-

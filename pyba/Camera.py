@@ -109,7 +109,7 @@ class Camera:
         self.intrinsic = intrinsic
 
     def can_see(self, img_id, jid):
-        return not np.any(self.points2d[img_id, jid] == 0)
+        return not np.any(np.isclose(self.points2d[img_id, jid], 0))
 
     def can_see_mask(self):
         return np.any(self.points2d == 0, axis=2)
@@ -118,7 +118,10 @@ class Camera:
         return self.points2d.shape[1]
 
     def get_image(self, img_id: int):
-        img = plt.imread(self.image_path.format(img_id=img_id))
+        try:
+            img = plt.imread(self.image_path.format(img_id=img_id))
+        except:
+            img = np.zeros((480, 960), dtype=np.uint8)
         if img.ndim == 2 or (img.ndim == 3 and img.shape[-1] == 1):
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
         return img
@@ -157,12 +160,12 @@ class Camera:
                         colors[idx] if colors is not None else (128, 0, 0),
                         5,
                     )
-        else:  # scatter
-            for jid in range(self.get_njoints()):
-                if self.can_see(img_id, jid):
-                    img = cv2.circle(
-                        img, tuple(points2d[jid].astype(int)), 5, [0, 0, 128], 5
-                    )
+
+        for jid in range(self.get_njoints()):
+            if self.can_see(img_id, jid):
+                img = cv2.circle(
+                    img, tuple(points2d[jid].astype(int)), 5, [0, 0, 128], 5
+                )
 
         return img
 

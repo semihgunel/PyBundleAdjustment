@@ -99,21 +99,25 @@ class CameraNetwork:
                 for (idx, c) in enumerate(self)
                 if c.can_see(img_id, j_id) and idx in cam_id
             ]
-            pt3d = triangulate(
-                [c.P for c in cameras],  # set of projection matrices
-                [np.array(c[img_id][j_id]) for c in cameras],  # set of 2d points
-            )
-            self.set_points3d(img_id, j_id, pt3d)
+
+            if len(cameras) >= 2:
+                pt3d = triangulate(
+                    [c.P for c in cameras],  # set of projection matrices
+                    [np.array(c[img_id][j_id]) for c in cameras],  # set of 2d points
+                )
+                self.set_points3d(img_id, j_id, pt3d)
+            else:
+                self.set_points3d(img_id, j_id, np.array([0, 0, 0]))
 
         return self.points3d
 
     def reprojection_error(self, reduce=True) -> float:
-        repro = [c.reprojection_error(self.points3d) for c in self]
+        repro = np.array([c.reprojection_error(self.points3d) for c in self])
 
         if reduce:
-            return np.mean(np.sum(np.abs(repro), axis=2))
+            return np.mean(np.sum(np.abs(repro), axis=-1))
         else:
-            return np.stack(repro, axis=0)
+            return repro
 
     def plot_2d(
         self,
